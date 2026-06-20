@@ -402,4 +402,43 @@ const initSqliteDatabase = async () => {
   }
 };
 
+// PostgreSQL Database Initialization Code
+const initPostgresDatabase = async () => {
+  if (dbType !== 'postgres') return;
+
+  try {
+    const res = await query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE  table_schema = 'public'
+        AND    table_name   = 'users'
+      );
+    `);
+
+    const tablesExist = res.rows[0]?.exists;
+    if (!tablesExist) {
+      console.log('Database: Users table not found in PostgreSQL. Running auto-migration...');
+
+      const schemaUrl = new URL('./schema.sql', import.meta.url);
+      const seedsUrl = new URL('./seeds.sql', import.meta.url);
+
+      const schemaSql = fs.readFileSync(schemaUrl, 'utf8');
+      const seedsSql = fs.readFileSync(seedsUrl, 'utf8');
+
+      console.log('Database: Applying tables, functions, and triggers to PostgreSQL...');
+      await query(schemaSql);
+      console.log('Database: PostgreSQL schema applied successfully.');
+
+      console.log('Database: Applying seed data to PostgreSQL...');
+      await query(seedsSql);
+      console.log('Database: PostgreSQL seeds applied successfully.');
+    } else {
+      console.log('Database: PostgreSQL tables verified (already exist).');
+    }
+  } catch (error) {
+    console.error('Database: PostgreSQL auto-migration check failed:', error);
+  }
+};
+
 initSqliteDatabase();
+initPostgresDatabase();
