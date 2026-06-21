@@ -4,6 +4,8 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
+import { schemaSql } from './schemaSql.js';
+import { seedsSql } from './seedsSql.js';
 
 dotenv.config();
 
@@ -418,12 +420,6 @@ const initPostgresDatabase = async () => {
     const tablesExist = res.rows[0]?.exists;
     if (!tablesExist) {
       console.log('Database: Users table not found in PostgreSQL. Running auto-migration...');
-
-      const schemaUrl = new URL('./schema.sql', import.meta.url);
-      const seedsUrl = new URL('./seeds.sql', import.meta.url);
-
-      const schemaSql = fs.readFileSync(schemaUrl, 'utf8');
-      const seedsSql = fs.readFileSync(seedsUrl, 'utf8');
 
       console.log('Database: Applying tables, functions, and triggers to PostgreSQL...');
       await query(schemaSql);
