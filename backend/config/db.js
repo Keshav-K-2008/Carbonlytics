@@ -1,5 +1,4 @@
 import pg from 'pg';
-import sqlite3 from 'sqlite3';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
@@ -25,9 +24,6 @@ if (dbUrl) {
   console.log('Database: Using PostgreSQL (Supabase/External)');
 } else {
   dbType = 'sqlite';
-  const dbPath = path.resolve('carbonlytix.db');
-  sqliteDb = new sqlite3.Database(dbPath);
-  console.log(`Database: Using local SQLite fallback (${dbPath})`);
   if (process.env.VERCEL) {
     console.warn('WARNING: Running in Vercel environment but DATABASE_URL is not set. Local SQLite data changes will not persist across serverless function invocations!');
   }
@@ -76,6 +72,16 @@ export const query = (text, params = []) => {
 // SQLite Database Initialization Code
 const initSqliteDatabase = async () => {
   if (dbType !== 'sqlite') return;
+
+  try {
+    const sqlite3 = (await import('sqlite3')).default;
+    const dbPath = path.resolve('carbonlytix.db');
+    sqliteDb = new sqlite3.Database(dbPath);
+    console.log(`Database: Using local SQLite fallback (${dbPath})`);
+  } catch (err) {
+    console.error('Failed to load SQLite module:', err);
+    return;
+  }
 
   const tables = [
     `CREATE TABLE IF NOT EXISTS users (
