@@ -78,16 +78,27 @@ export const query = (text, params = []) => {
 
 // SQLite Database Initialization Code
 const initSqliteDatabase = async () => {
+  // IMPORTANT: Never attempt to load sqlite3 on Vercel/serverless or when PostgreSQL is configured.
+  // sqlite3 requires native C++ bindings that cannot run in serverless environments.
   if (dbType !== 'sqlite') return;
+  if (process.env.VERCEL) {
+    console.warn('Database: SQLite is not supported on Vercel. Set DATABASE_URL to use PostgreSQL.');
+    return;
+  }
 
   try {
     const pkg = 'sqlite' + '3';
-    const sqlite3 = (await import(pkg)).default;
+    const sqlite3Module = await import(pkg).catch(() => null);
+    if (!sqlite3Module) {
+      console.error('Failed to load SQLite module. Please ensure sqlite3 is installed.');
+      return;
+    }
+    const sqlite3 = sqlite3Module.default;
     const dbPath = path.resolve('carbonlytix.db');
     sqliteDb = new sqlite3.Database(dbPath);
     console.log(`Database: Using local SQLite fallback (${dbPath})`);
   } catch (err) {
-    console.error('Failed to load SQLite module:', err);
+    console.error('Failed to load SQLite module:', err.message);
     return;
   }
 
@@ -450,5 +461,6 @@ const initPostgresDatabase = async () => {
   }
 };
 
-initSqliteDatabase();
-initPostgresDatabase();
+// Initialize database safely — catch any errors so they don't crash the serverless function
+initSqliteDatabase().catch((err) => console.error('SQLite init error:', err.message));
+initPostgresDatabase().catch((err) => console.error('PostgreSQL init error:', err.message));
