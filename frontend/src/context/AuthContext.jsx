@@ -11,8 +11,8 @@ export const AuthProvider = ({ children }) => {
   // Initialize Auth state from localStorage
   useEffect(() => {
     const initializeAuth = async () => {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
+      const storedToken = window.localStorage.getItem('token');
+      const storedUser = window.localStorage.getItem('user');
       
       if (storedToken && storedUser) {
         setToken(storedToken);
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
               avatarUrl: res.data.data.avatar_url || '',
             };
             setUser(latestUser);
-            localStorage.setItem('user', JSON.stringify(latestUser));
+            window.localStorage.setItem('user', JSON.stringify(latestUser));
           }
         } catch (err) {
           console.error('Failed to verify session token:', err);
@@ -62,8 +62,8 @@ export const AuthProvider = ({ children }) => {
         };
         
         setUser(mappedUser);
-        localStorage.setItem('token', returnedToken);
-        localStorage.setItem('user', JSON.stringify(mappedUser));
+        window.localStorage.setItem('token', returnedToken);
+        window.localStorage.setItem('user', JSON.stringify(mappedUser));
         return { success: true };
       }
       return { success: false, message: 'Login failed. Invalid response from server.' };
@@ -95,8 +95,8 @@ export const AuthProvider = ({ children }) => {
         };
         
         setUser(mappedUser);
-        localStorage.setItem('token', returnedToken);
-        localStorage.setItem('user', JSON.stringify(mappedUser));
+        window.localStorage.setItem('token', returnedToken);
+        window.localStorage.setItem('user', JSON.stringify(mappedUser));
         return { success: true };
       }
       return { success: false, message: 'Registration failed. Invalid response from server.' };
@@ -112,8 +112,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    window.localStorage.removeItem('token');
+    window.localStorage.removeItem('user');
     setToken(null);
     setUser(null);
   };
@@ -143,9 +143,9 @@ export const AuthProvider = ({ children }) => {
       if (res.data?.success) {
         setUser((prev) => ({ ...prev, avatarUrl: mockAvatarUrl }));
         
-        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const storedUser = JSON.parse(window.localStorage.getItem('user') || '{}');
         storedUser.avatarUrl = mockAvatarUrl;
-        localStorage.setItem('user', JSON.stringify(storedUser));
+        window.localStorage.setItem('user', JSON.stringify(storedUser));
         
         return mockAvatarUrl;
       }
@@ -164,7 +164,7 @@ export const AuthProvider = ({ children }) => {
         avatarUrl: updatedData.avatarUrl || user.avatarUrl,
       };
       setUser(newUserObj);
-      localStorage.setItem('user', JSON.stringify(newUserObj));
+      window.localStorage.setItem('user', JSON.stringify(newUserObj));
     }
   };
 
