@@ -18,13 +18,6 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (
-              id.includes('react') ||
-              id.includes('scheduler') ||
-              id.includes('@remix-run')
-            ) {
-              return 'vendor-react';
-            }
             if (id.includes('recharts')) {
               return 'vendor-charts';
             }
@@ -34,7 +27,7 @@ export default defineConfig({
             if (id.includes('lucide-react')) {
               return 'vendor-icons';
             }
-            return 'vendor-others';
+            return 'vendor';
           }
         },
       },

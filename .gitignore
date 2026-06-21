@@ -1,1 +1,9 @@
+node_modules/
+dist/
 .vercel
+.vite/
+.env
+.env.*
+!*.example
+*.db
+.DS_Store
