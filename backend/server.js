@@ -94,7 +94,7 @@ process.on('uncaughtException', (err) => {
 });
 
 // Start Express Server
-if (!process.env.VERCEL) {
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
   });

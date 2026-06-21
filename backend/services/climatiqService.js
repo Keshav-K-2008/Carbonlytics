@@ -193,6 +193,7 @@ export class ClimatiqService {
             [mapping.param_name]: Number(amount),
             [`${mapping.param_name}_unit`]: mapping.param_unit,
           },
+          data_version: "34" // Supply the required data_version parameter
         }),
       });
 

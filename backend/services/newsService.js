@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { cache } from '../config/cache.js';
 
 dotenv.config();
 
@@ -46,7 +47,15 @@ export class NewsService {
    * @returns {Promise<Array>}
    */
   static async getClimateNews() {
+    const cacheKey = 'climate_news';
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return cachedData;
+    }
+
     if (!NEWS_API_KEY || NEWS_API_KEY === 'your_news_api_key_here') {
+      // Cache mock news for 60 minutes
+      cache.set(cacheKey, MOCK_NEWS, 60 * 60 * 1000);
       return MOCK_NEWS;
     }
 
@@ -64,7 +73,7 @@ export class NewsService {
       
       if (result.status === 'ok' && Array.isArray(result.articles) && result.articles.length > 0) {
         // Filter out broken articles without images or titles
-        return result.articles
+        const cleanArticles = result.articles
           .filter(art => art.title && art.description && art.urlToImage)
           .map(art => ({
             title: art.title,
@@ -74,11 +83,19 @@ export class NewsService {
             urlToImage: art.urlToImage,
             publishedAt: art.publishedAt?.slice(0, 10) || new Date().toISOString().slice(0, 10),
           }));
+
+        // Cache for 60 minutes
+        cache.set(cacheKey, cleanArticles, 60 * 60 * 1000);
+        return cleanArticles;
       }
 
+      // If response was ok but articles empty, cache mock news for 5 mins
+      cache.set(cacheKey, MOCK_NEWS, 5 * 60 * 1000);
       return MOCK_NEWS;
     } catch (error) {
       console.error('Failed to fetch climate news, using mock articles:', error);
+      // Cache mock news for 5 minutes during failure state
+      cache.set(cacheKey, MOCK_NEWS, 5 * 60 * 1000);
       return MOCK_NEWS;
     }
   }

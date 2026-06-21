@@ -1,22 +1,29 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
 
-// Pages
-import LandingPage from './pages/LandingPage';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
-import Calculator from './pages/Calculator';
-import Analytics from './pages/Analytics';
-import Recommendations from './pages/Recommendations';
-import Goals from './pages/Goals';
-import Challenges from './pages/Challenges';
-import Education from './pages/Education';
-import Admin from './pages/Admin';
-import OffsetMarketplace from './pages/OffsetMarketplace';
-import NewsHub from './pages/NewsHub';
+// Lazy load pages for optimal bundle splitting and LCP load times
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Calculator = lazy(() => import('./pages/Calculator'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const Recommendations = lazy(() => import('./pages/Recommendations'));
+const Goals = lazy(() => import('./pages/Goals'));
+const Challenges = lazy(() => import('./pages/Challenges'));
+const Education = lazy(() => import('./pages/Education'));
+const Admin = lazy(() => import('./pages/Admin'));
+const OffsetMarketplace = lazy(() => import('./pages/OffsetMarketplace'));
+const NewsHub = lazy(() => import('./pages/NewsHub'));
+
+// Loading spinner fallback for lazy-loaded components
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-dark-950">
+    <div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 // Protected Layout: Mounts Sidebar and provides scrollable content block
 const MainLayout = () => {
@@ -35,11 +42,7 @@ const ProtectedRoute = () => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-dark-950">
-        <div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
@@ -50,11 +53,7 @@ const AdminRoute = () => {
   const { isAdmin, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-dark-950">
-        <div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return isAdmin ? <Outlet /> : <Navigate to="/dashboard" replace />;
@@ -62,35 +61,37 @@ const AdminRoute = () => {
 
 const App = () => {
   return (
-    <Routes>
-      {/* Public Landing Pages */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+    <Suspense fallback={<LoadingSpinner />}>
+      <Routes>
+        {/* Public Landing Pages */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
-      {/* Authenticated Application Routes */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/calculator" element={<Calculator />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/recommendations" element={<Recommendations />} />
-          <Route path="/goals" element={<Goals />} />
-          <Route path="/challenges" element={<Challenges />} />
-          <Route path="/education" element={<Education />} />
-          <Route path="/offsets" element={<OffsetMarketplace />} />
-          <Route path="/news" element={<NewsHub />} />
-          
-          {/* Admin Restricted Routes */}
-          <Route element={<AdminRoute />}>
-            <Route path="/admin" element={<Admin />} />
+        {/* Authenticated Application Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/calculator" element={<Calculator />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/recommendations" element={<Recommendations />} />
+            <Route path="/goals" element={<Goals />} />
+            <Route path="/challenges" element={<Challenges />} />
+            <Route path="/education" element={<Education />} />
+            <Route path="/offsets" element={<OffsetMarketplace />} />
+            <Route path="/news" element={<NewsHub />} />
+            
+            {/* Admin Restricted Routes */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<Admin />} />
+            </Route>
           </Route>
         </Route>
-      </Route>
 
-      {/* Wildcard Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Wildcard Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 };
 
