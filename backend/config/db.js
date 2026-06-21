@@ -15,11 +15,18 @@ let pool = null;
 let sqliteDb = null;
 export let dbType = 'sqlite';
 
+if (process.env.VERCEL && !dbUrl) {
+  throw new Error('CRITICAL CONFIGURATION ERROR: DATABASE_URL environment variable is missing in Vercel. Please add it in your Vercel Project Settings.');
+}
+
 if (dbUrl) {
   dbType = 'postgres';
   pool = new pg.Pool({
     connectionString: dbUrl,
     ssl: { rejectUnauthorized: false },
+  });
+  pool.on('error', (err) => {
+    console.error('Unexpected error on idle PostgreSQL client:', err);
   });
   console.log('Database: Using PostgreSQL (Supabase/External)');
 } else {
@@ -74,7 +81,8 @@ const initSqliteDatabase = async () => {
   if (dbType !== 'sqlite') return;
 
   try {
-    const sqlite3 = (await import('sqlite3')).default;
+    const pkg = 'sqlite' + '3';
+    const sqlite3 = (await import(pkg)).default;
     const dbPath = path.resolve('carbonlytix.db');
     sqliteDb = new sqlite3.Database(dbPath);
     console.log(`Database: Using local SQLite fallback (${dbPath})`);
