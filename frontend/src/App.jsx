@@ -3,10 +3,12 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
 
-// Lazy load pages for optimal bundle splitting and LCP load times
-const LandingPage = lazy(() => import('./pages/LandingPage'));
-const Login = lazy(() => import('./pages/Login'));
-const Signup = lazy(() => import('./pages/Signup'));
+// Entry pages are imported synchronously to guarantee immediate render on startup
+import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+
+// Lazy load interior authenticated pages to optimize initial bundle size and LCP times
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Calculator = lazy(() => import('./pages/Calculator'));
 const Analytics = lazy(() => import('./pages/Analytics'));
