@@ -5,8 +5,8 @@
       "src": "backend/server.js",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["backend/**"],
-        "excludeFiles": ["backend/node_modules/sqlite3/**"]
+        "includeFiles": "backend/**",
+        "maxLambdaSize": "50mb"
       }
     },
     {
@@ -20,11 +20,10 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/server.js"
+      "dest": "/backend/server.js"
     },
     {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|map))",
-      "dest": "/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",

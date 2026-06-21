@@ -189,6 +189,7 @@ router.get('/debug-db', async (req, res) => {
     dbType: dbType,
     VERCEL: !!process.env.VERCEL,
     NODE_ENV: process.env.NODE_ENV,
+    envKeys: Object.keys(process.env).join(', ')
   };
 
   try {

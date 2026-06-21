@@ -16,7 +16,7 @@ let sqliteDb = null;
 export let dbType = 'sqlite';
 
 if (process.env.VERCEL && !dbUrl) {
-  throw new Error('CRITICAL CONFIGURATION ERROR: DATABASE_URL environment variable is missing in Vercel. Please add it in your Vercel Project Settings.');
+  console.error('CRITICAL: DATABASE_URL environment variable is missing in Vercel. Please add it in Vercel Project Settings → Environment Variables.');
 }
 
 if (dbUrl) {
