@@ -181,4 +181,39 @@ router.post('/offsets/simulate', protect, async (req, res) => {
   }
 });
 
+// 5. Temporary DB Diagnostic Endpoint
+router.get('/debug-db', async (req, res) => {
+  const diagnostics = {
+    DATABASE_URL_EXISTS: !!process.env.DATABASE_URL,
+    DATABASE_URL_PARTIAL: process.env.DATABASE_URL ? process.env.DATABASE_URL.split('@')[1] : 'undefined',
+    dbType: dbType,
+    VERCEL: !!process.env.VERCEL,
+    NODE_ENV: process.env.NODE_ENV,
+  };
+
+  try {
+    const testQuery = await query('SELECT 1 as connected');
+    diagnostics.dbConnection = (testQuery.rows && testQuery.rows[0]?.connected == 1) ? 'SUCCESS' : 'FAILED';
+    
+    if (dbType === 'postgres') {
+      const tablesRes = await query(`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+      `);
+      diagnostics.tables = tablesRes.rows.map(row => row.table_name);
+    } else {
+      const tablesRes = await query("SELECT name FROM sqlite_master WHERE type='table'");
+      diagnostics.tables = tablesRes.rows.map(row => row.name);
+    }
+  } catch (err) {
+    diagnostics.error = {
+      message: err.message,
+      stack: err.stack,
+    };
+  }
+
+  res.json({ success: true, diagnostics });
+});
+
 export default router;
